@@ -25,9 +25,12 @@ def list_of_items(items):
 
     """
     item_list = ""
-    for x in range(0, len(items)-1):
-        item_list = item_list + (items[x])["name"] + ", "
-    item_list = item_list + (items[len(items)-1])["name"]
+    if  len(items) == 0:
+        return item_list
+    else:
+        for x in range(0, len(items)-1):
+            item_list = item_list + (items[x])["name"] + ", "
+        item_list = item_list + (items[len(items)-1])["name"]
     return item_list
 
 def print_room_items(room):
@@ -52,6 +55,8 @@ def print_room_items(room):
     Note: <BLANKLINE> here means that doctest should expect a blank line.
 
     """
+    if len(room["items"]) == 0:
+        return
     print("There is " + list_of_items(room["items"]) + " here.")
     print("")
     return
@@ -226,6 +231,7 @@ def execute_go(direction):
     (and prints the name of the room into which the player is
     moving). Otherwise, it prints "You cannot go there."
     """
+    global current_room
     if is_valid_exit(current_room["exits"], direction):
         current_room = rooms[current_room["exits"][direction]]
 
@@ -240,7 +246,7 @@ def execute_take(item_id):
         if item_id == current_room["items"][x]["id"]:
             inventory.append(current_room["items"].pop(x))
             if item_id == "biscuits":
-                victory = true
+                victory = True
         return
     print("You cannot take that.")
     return
@@ -253,8 +259,8 @@ def execute_drop(item_id):
     no such item in the inventory, this function prints "You cannot drop that."
     """
     for x in range(0, len(inventory)):
-        if item_id == inventory[i]["id"]:
-            current_room["items"].append(inventory.pop(i))
+        if item_id == inventory[x]["id"]:
+            current_room["items"].append(inventory.pop(x))
             return
     print("You cannot drop that.")
     return
@@ -282,6 +288,11 @@ def execute_command(command):
             execute_take(command[1])
         else:
             print("Take what?")
+    elif command[0] == "eat":
+        if len(command) > 1:
+            execute_eat(command[1])
+        else:
+            print("Eat what?")
 
     elif command[0] == "drop":
         if len(command) > 1:
@@ -292,6 +303,23 @@ def execute_command(command):
     else:
         print("This makes no sense.")
 
+def execute_eat(item_id):
+    # this function allows you to eat biscuits, it fails if you attempt to eat any other item
+
+    # check if user is attempting to eat something other than biscuits
+    if item_id != "biscuits":
+        print("You cannot eat that.")
+        return
+    else:
+        # check if user has biscuits in inventory
+        for x in range(0, len(inventory)):
+            if item_id == inventory[x]["id"]:
+                victory = True
+                return
+        print("You do not have biscuits.")
+        return
+    
+    
 
 def menu(exits, room_items, inv_items):
     """This function, given a dictionary of possible exits from a room, and a list
@@ -335,10 +363,10 @@ def move(exits, direction):
 def main():
 
     # Main game loop
-    victory = false
+    victory = False
         
     while True:
-        if victory == false:
+        if victory == False:
         # Display game status (room description, inventory etc.)
             print_room(current_room)
             print_inventory_items(inventory)
@@ -350,7 +378,9 @@ def main():
             execute_command(command)
         else:
             print("Congratulations! You have won the game!")
-
+            exitfunc = input("Press enter to leave the game.")
+            break
+    
 
 
 # Are we being run as a script? If so, run main().
